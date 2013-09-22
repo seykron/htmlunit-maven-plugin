@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=$sourceEncoding$">
+  <title>Default JavaScript Test Runner</title>
+  $cssDependencies$
+  $bootstrapScripts$
+  $sourceScripts$
+</head>
+<body>
+  <div id="main"><!-- Let's have a main node for testing--></div>
+  $testFiles$
+  $testRunnerScript$
+  <script type="text/javascript">
+    jQuery(function () {
+        describe("Basic Suite", function() {
+            it("Should pass a basic truthiness test.", function() {
+                expect(true).toEqual(true);
+            });
+            
+            it("Should fail when it hits an inequal statement.", function() {
+                expect(1+1).toEqual(3);
+            });
+        });
+        
+        describe("Another Suite", function() {
+            it("Should pass this test as well.", function() {
+                expect(0).toEqual(0);
+            });
+        });
+
+      jasmine.getEnv().addReporter(new jasmine.ConsoleReporter());
+      jasmine.getEnv().addReporter(new jasmine.TerminalReporter({
+        verbosity: 2,
+        color: true
+      }));
+      jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+      jasmine.getEnv().addReporter(new jasmine.JUnitXmlReporter(
+        window.outputDirectory, true, true));
+      jasmine.getEnv().execute();
+      window.close();
+    });
+  </script>
+</body>
+</html>

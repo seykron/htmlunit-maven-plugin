@@ -1,0 +1,12 @@
+<ul id="foo">
+  <li>Moe</li>
+  <li>Joe</li>
+  <li>Ron</li>
+</ul>
+
+<script type="text/javascript">
+  var list = document.getElementById("foo");
+  var result = document.getElementById("main");
+  result.innerHTML = list.getElementsByTagName("li")[0].innerHTML;
+  window.close();
+</script>
