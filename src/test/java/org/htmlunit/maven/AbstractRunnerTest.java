@@ -10,11 +10,13 @@ import java.util.Properties;
 import org.antlr.stringtemplate.StringTemplate;
 import org.htmlunit.javascript.EventHandler;
 import org.htmlunit.maven.AbstractRunner;
+import org.htmlunit.maven.AbstractRunner.RunnerDriver;
 import org.htmlunit.maven.RunnerContext;
 import org.junit.Test;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.javascript.host.Event;
 import com.gargoylesoftware.htmlunit.javascript.host.Window;
 
@@ -44,16 +46,15 @@ public class AbstractRunnerTest {
     context.init();
     replay(context);
 
-    assertThat(runner.getWebClient(), is(nullValue()));
     assertThat(runner.getContext(), is(nullValue()));
     assertThat(runner.getDriver(), is(nullValue()));
 
     runner.initialize(context);
-    assertThat(runner.getWebClient().getOptions().getHomePage(),
-        is("http://foo.bar"));
-    assertThat(runner.getWebClient().getOptions().isJavaScriptEnabled(),
-        is(true));
-    assertThat(runner.getWebClient().getAjaxController(),
+
+    WebClient client = ((RunnerDriver) runner.getDriver()).getWebClient();
+    assertThat(client.getOptions().getHomePage(), is("http://foo.bar"));
+    assertThat(client.getOptions().isJavaScriptEnabled(), is(true));
+    assertThat(client.getAjaxController(),
         instanceOf(NicelyResynchronizingAjaxController.class));
     assertThat(runner.getContext(), is(context));
     assertThat(runner.getDriver(), is(notNullValue()));

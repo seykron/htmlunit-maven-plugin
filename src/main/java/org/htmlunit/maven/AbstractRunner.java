@@ -87,9 +87,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
   /** Web driver to load pages; it's never null after initialize(). */
   private RunnerDriver driver;
 
-  /** Current client; it's never null after initialize(). */
-  private WebClient client;
-
   /** List of registered events. */
   private List<EventDefinition> eventDefinitions =
       new ArrayList<EventDefinition>();
@@ -116,9 +113,9 @@ public abstract class AbstractRunner implements WebDriverRunner {
     context.init();
     driver = new RunnerDriver(context.getBrowserVersion());
     int timeout = getContext().getTimeout();
-    boolean throwException = client.getOptions()
+    boolean throwException = driver.getWebClient().getOptions()
         .isThrowExceptionOnScriptError();
-    wait = new WebClientWait(client);
+    wait = new WebClientWait(driver.getWebClient());
     wait.setThrowJavaScriptException(throwException)
       .pollingEvery(1000, TimeUnit.MILLISECONDS);
     if (timeout > -1) {
@@ -150,11 +147,12 @@ public abstract class AbstractRunner implements WebDriverRunner {
    */
   public void addEventListener(final String eventType,
       final EventHandler handler, final boolean useCapture) {
-    Validate.notNull(client, "The web client is not initialized.");
+    Validate.notNull(driver, "The web client is not initialized.");
 
-    if (client.getCurrentWindow() != null
-        && client.getCurrentWindow().getScriptObject() != null) {
-      Window window = (Window) client.getCurrentWindow().getScriptObject();
+    if (driver.getWebClient().getCurrentWindow() != null
+        && driver.getWebClient().getCurrentWindow().getScriptObject() != null) {
+      Window window = (Window) driver.getWebClient().getCurrentWindow()
+          .getScriptObject();
       window.addEventListener(eventType, handler, useCapture);
     }
     eventDefinitions.add(new EventDefinition(eventType, handler, useCapture));
@@ -175,16 +173,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
    */
   public HtmlUnitDriver getDriver() {
     return driver;
-  }
-
-  /** Returns the configured web client.
-   * @return A valid web client, or null if initialize() was not executed.
-   */
-  public WebClient getWebClient() {
-    if (client != null) {
-      return client;
-    }
-    return null;
   }
 
   /** {@inheritDoc}
@@ -344,119 +332,9 @@ public abstract class AbstractRunner implements WebDriverRunner {
     }
   }
 
-  /** Initializes default webclient configuration.
-   *
-   * @param theClient Client to initialize configuration. Cannot be null.
-   */
-  private void initializWebDriverConfiguration(final WebClient theClient) {
-    // Loads default configuration from context.
-    Properties configuration = getContext().getWebClientConfiguration();
-    for (Object property : configuration.keySet()) {
-      try {
-        String methodName = "set" + StringUtils.capitalize((String) property);
-        TypedPropertyEditor editor = new TypedPropertyEditor();
-        editor.setValue(configuration.get(property));
-        Statement stmt = new Statement(getWebClient().getOptions(), methodName,
-            new Object[] { editor.getValue() });
-        stmt.execute();
-      } catch (Exception cause) {
-        throw new IllegalArgumentException("Property " + property
-            + " cannot be set in web client.", cause);
-      }
-    }
-
-    theClient.setAjaxController(new NicelyResynchronizingAjaxController());
-    theClient.setIncorrectnessListener(new IncorrectnessListener() {
-      @Override
-      public void notify(final String message, final Object origin) {
-        LOG.trace(message, origin);
-      }
-    });
-    theClient.getOptions().setJavaScriptEnabled(true);
-    theClient.addWebWindowListener(new WebWindowListener() {
-
-      /** {@inheritDoc}
-       */
-      @Override
-      public void webWindowOpened(final WebWindowEvent event) {
-      }
-
-      /** Adds registered event listeners to the window.
-       * {@inheritDoc}
-       */
-      @Override
-      public void webWindowContentChanged(final WebWindowEvent event) {
-        Window window = (Window) event.getWebWindow().getScriptObject();
-        registerEventListeners(window);
-        publishConfiguration(window);
-        window.setConsole(new Console());
-      }
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void webWindowClosed(final WebWindowEvent event) {
-      }
-    });
-  }
-
-  /** Creates a web connection that supports to load resources from the
-   * classpath.
-   *
-   * @param client Client to wrap connection. Cannot be null.
-   * @return A wrapped web connection, never returns null.
-   */
-  private WebConnection createConnectionWrapper(final WebClient client) {
-    return new WebConnectionWrapper(client) {
-      @Override
-      public WebResponse getResponse(final WebRequest request)
-          throws IOException {
-        String protocol = request.getUrl().getProtocol();
-
-        // Default web response is retrieved using commons HttpClient.
-        // It assumes HttpClient created internally by HtmlUnit is using the
-        // default registry. We check for supported schemes by the default
-        // registry.
-        boolean canHandle = SchemeRegistryFactory.createDefault()
-            .get(protocol) != null;
-        if (!canHandle) {
-          // For unsupported schemes, it tries to read the response using
-          // native URL connection.
-          String data = ResourceUtils.readAsText(request.getUrl());
-          return new StringWebResponse(data, request.getUrl());
-        }
-        return super.getResponse(request);
-      }
-    };
-  }
-
-  /** Adds all registered event listeners to the specified window.
-   * @param window Window to add event listeners. Cannot be null.
-   */
-  private void registerEventListeners(final Window window) {
-    for (EventDefinition definition : eventDefinitions) {
-      window.addEventListener(definition.getEventType(),
-          definition.getHandler(), definition.isUseCapture());
-    }
-  }
-
-  /** Publishes runner configuration properties to JavaScript's global scope.
-   *
-   * @param window Window to expose configuration. Cannot be null.
-   */
-  private void publishConfiguration(final Window window) {
-    Properties config = getContext().getRunnerConfiguration();
-
-    for (Object key : config.keySet()) {
-      window.defineProperty((String) key, config.get(key),
-          ScriptableObject.READONLY);
-    }
-  }
-
   /** Modified WebDriver with several workarounds and custom configuration.
    */
-  private class RunnerDriver extends HtmlUnitDriver {
+  class RunnerDriver extends HtmlUnitDriver {
 
     /** Creates a driver and sets the browser version.
      * @param version Driver's browser version. Cannot be null.
@@ -472,22 +350,22 @@ public abstract class AbstractRunner implements WebDriverRunner {
       return (HtmlPage) lastPage();
     }
 
-    /** {@inheritDoc}
+    /** Returns the configured web client.
+     * @return Returns a valid web client, never returns null.
      */
     @Override
-    protected WebClient newWebClient(final BrowserVersion version) {
-      client = new WebClient(version);
-      return client;
+    public WebClient getWebClient() {
+      return super.getWebClient();
     }
 
     /** {@inheritDoc}
      */
     @Override
     protected WebClient modifyWebClient(final WebClient theClient) {
-      client.setWebConnection(createConnectionWrapper(client));
-      initializWebDriverConfiguration(client);
-      configureWebClient(client);
-      return client;
+      theClient.setWebConnection(createConnectionWrapper(theClient));
+      initializeWebClientConfiguration(theClient);
+      configureWebClient(theClient);
+      return theClient;
     };
 
     /** Since version 2.32.0, selenium doesn't allow to use DOM in closed
@@ -499,6 +377,120 @@ public abstract class AbstractRunner implements WebDriverRunner {
     @Override
     protected Page lastPage() {
       return getCurrentWindow().getEnclosedPage();
+    }
+
+    /** Initializes default webclient configuration.
+     *
+     * @param theClient Client to initialize configuration. Cannot be null.
+     */
+    private void initializeWebClientConfiguration(final WebClient theClient) {
+      // Loads default configuration from context.
+      Properties configuration = getContext().getWebClientConfiguration();
+      for (Object property : configuration.keySet()) {
+        try {
+          String methodName = "set" + StringUtils.capitalize((String) property);
+          TypedPropertyEditor editor = new TypedPropertyEditor();
+          editor.setValue(configuration.get(property));
+          Statement stmt = new Statement(theClient.getOptions(), methodName,
+              new Object[] { editor.getValue() });
+          stmt.execute();
+        } catch (Exception cause) {
+          throw new IllegalArgumentException("Property " + property
+              + " cannot be set in web client.", cause);
+        }
+      }
+
+      theClient.setAjaxController(new NicelyResynchronizingAjaxController());
+      theClient.setIncorrectnessListener(new IncorrectnessListener() {
+        @Override
+        public void notify(final String message, final Object origin) {
+          LOG.trace(message, origin);
+        }
+      });
+      theClient.getOptions().setJavaScriptEnabled(true);
+      theClient.addWebWindowListener(new WebWindowListener() {
+
+        /** {@inheritDoc}
+         */
+        @Override
+        public void webWindowOpened(final WebWindowEvent event) {
+        }
+
+        /** Adds registered event listeners to the window.
+         * {@inheritDoc}
+         */
+        @Override
+        public void webWindowContentChanged(final WebWindowEvent event) {
+          com.gargoylesoftware.htmlunit.javascript.host.Window window;
+          window = (com.gargoylesoftware.htmlunit.javascript.host.Window) event
+              .getWebWindow().getScriptObject();
+          registerEventListeners(window);
+          publishConfiguration(window);
+          window.setConsole(new Console());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void webWindowClosed(final WebWindowEvent event) {
+        }
+      });
+    }
+
+    /** Creates a web connection that supports to load resources from the
+     * classpath.
+     *
+     * @param client Client to wrap connection. Cannot be null.
+     * @return A wrapped web connection, never returns null.
+     */
+    private WebConnection createConnectionWrapper(final WebClient client) {
+      return new WebConnectionWrapper(client) {
+        @Override
+        public WebResponse getResponse(final WebRequest request)
+            throws IOException {
+          String protocol = request.getUrl().getProtocol();
+
+          // Default web response is retrieved using commons HttpClient.
+          // It assumes HttpClient created internally by HtmlUnit is using the
+          // default registry. We check for supported schemes by the default
+          // registry.
+          boolean canHandle = SchemeRegistryFactory.createDefault()
+              .get(protocol) != null;
+          if (!canHandle) {
+            // For unsupported schemes, it tries to read the response using
+            // native URL connection.
+            String data = ResourceUtils.readAsText(request.getUrl());
+            return new StringWebResponse(data, request.getUrl());
+          }
+          return super.getResponse(request);
+        }
+      };
+    }
+
+    /** Adds all registered event listeners to the specified window.
+     * @param window Window to add event listeners. Cannot be null.
+     */
+    private void registerEventListeners(
+        final com.gargoylesoftware.htmlunit.javascript.host.Window window) {
+      for (EventDefinition definition : eventDefinitions) {
+        window.addEventListener(definition.getEventType(),
+            definition.getHandler(), definition.isUseCapture());
+      }
+    }
+
+    /** Publishes runner configuration properties to JavaScript's global scope.
+     *
+     * @param window Window to expose configuration. Cannot be null.
+     */
+    private void publishConfiguration(
+        final com.gargoylesoftware.htmlunit.javascript.host.Window window) {
+      Properties config = getContext().getRunnerConfiguration();
+
+      for (Object key : config.keySet()) {
+        window.defineProperty((String) key, config.get(key),
+            ScriptableObject.READONLY);
+      }
     }
   }
 
