@@ -159,7 +159,7 @@ public class RunnerContextTest {
     assertThat(context.getSourceScripts().size(), is(2));
     assertThat(context.getSourceScripts().get(0).toString()
         .endsWith("Widget.js"), is(true));
-    assertThat(context.getTestFiles().size(), is(2));
+    assertThat(context.getTestFiles().size(), is(3));
     assertThat(context.getTestFiles().get(0).toString()
         .endsWith("WidgetTest.js"), is(true));
     assertThat(context.getOutputDirectory(),

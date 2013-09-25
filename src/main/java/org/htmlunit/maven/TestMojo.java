@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -15,6 +16,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.htmlunit.maven.runner.JavaScriptTestRunner;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -123,6 +125,13 @@ public class TestMojo extends AbstractMojo {
    */
   private boolean debugMode;
 
+  /** List of properties to register in {@link System#getProperties()}.
+   *
+   * @parameter
+   */
+  @SuppressWarnings("rawtypes")
+  private Map systemProperties = new HashMap();
+
   /** Executes jasmine tests.
    */
   @Override
@@ -130,6 +139,8 @@ public class TestMojo extends AbstractMojo {
     if (skipTests) {
       return;
     }
+
+    registerSystemProperties();
 
     WebDriverRunner runner = createRunner();
     RunnerContext context = new RunnerContext();
@@ -255,5 +266,16 @@ public class TestMojo extends AbstractMojo {
       throw new RuntimeException(cause);
     }
     return driverBrowserVersion;
+  }
+
+
+  /** Registers system properties in {@link System#getProperties()} so custom
+   * {@link WebDriver}s are able to get context from the current execution.
+   */
+  private void registerSystemProperties() {
+    for (Object key : systemProperties.keySet()) {
+      System.setProperty(String.valueOf(key),
+          String.valueOf(systemProperties.get(key)));
+    }
   }
 }

@@ -30,7 +30,8 @@ public class JavaScriptTestRunnerTest {
         "classpath:org/htmlunit/maven/TestRunner.js");
     runnerConfig.put("bootstrapScripts",
         "classpath:org/htmlunit/maven/Bootstrap.js;"
-        + "http://code.jquery.com/jquery-1.9.1.js");
+        + "http://code.jquery.com/jquery-1.9.1.js;"
+        + "classpath:/META-INF/resources/webjars/jasmine/**/*.js");
     runnerConfig.put("sourceScripts",
         "classpath:org/htmlunit/maven/*.js;"
         + "~classpath:org/htmlunit/maven/*Test.js;"
