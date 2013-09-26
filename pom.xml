@@ -228,49 +228,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.htmlunit</groupId>
-        <artifactId>htmlunit-maven-plugin</artifactId>
-        <version>${version}</version>
-        <executions>
-          <execution>
-            <id>jasmine-tests</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <dependenciesClassLoader>true</dependenciesClassLoader>
-          <testDependenciesClassLoader>true</testDependenciesClassLoader>
-          <webClientConfiguration>
-            <javaScriptEnabled>true</javaScriptEnabled>
-          </webClientConfiguration>
-          <runnerConfiguration>
-            <outputDirectory>${project.build.directory}/htmlunit-tests</outputDirectory>
-            <debugPort>9000</debugPort>
-            <testRunnerTemplate>
-              file:${basedir}/src/test/resources/org/htmlunit/maven/JasmineTestRunner.html
-            </testRunnerTemplate>
-            <bootstrapScripts>
-              classpath:/META-INF/resources/webjars/jasmine/**/*.js;
-              classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js;
-              classpath:/META-INF/resources/webjars/jquery/**/*.min.js;
-              file:${basedir}/src/test/resources/**/Bootstrap.js
-            </bootstrapScripts>
-            <sourceScripts>
-              file:${basedir}/src/main/resources/**/*.js;
-            </sourceScripts>
-            <testFiles>
-              file:${basedir}/src/test/resources/**/*Test.js
-            </testFiles>
-          </runnerConfiguration>
-          <systemProperties>
-            <logback.configurationFile>${basedir}/src/test/resources/logback-runtime.xml</logback.configurationFile>
-          </systemProperties>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
         <version>2.5.1</version>
@@ -319,5 +276,58 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.htmlunit</groupId>
+            <artifactId>htmlunit-maven-plugin</artifactId>
+            <version>${version}</version>
+            <executions>
+              <execution>
+                <id>jasmine-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <dependenciesClassLoader>true</dependenciesClassLoader>
+              <testDependenciesClassLoader>true</testDependenciesClassLoader>
+              <webClientConfiguration>
+                <javaScriptEnabled>true</javaScriptEnabled>
+              </webClientConfiguration>
+              <runnerConfiguration>
+                <outputDirectory>${project.build.directory}/htmlunit-tests</outputDirectory>
+                <debugPort>9000</debugPort>
+                <testRunnerTemplate>
+                  file:${basedir}/src/test/resources/org/htmlunit/maven/JasmineTestRunner.html
+                </testRunnerTemplate>
+                <bootstrapScripts>
+                  classpath:/META-INF/resources/webjars/jasmine/**/*.js;
+                  classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js;
+                  classpath:/META-INF/resources/webjars/jquery/**/*.min.js;
+                  file:${basedir}/src/test/resources/**/Bootstrap.js
+                </bootstrapScripts>
+                <sourceScripts>
+                  file:${basedir}/src/main/resources/**/*.js;
+                </sourceScripts>
+                <testFiles>
+                  file:${basedir}/src/test/resources/**/*Test.js
+                </testFiles>
+              </runnerConfiguration>
+              <systemProperties>
+                <logback.configurationFile>${basedir}/src/test/resources/logback-runtime.xml</logback.configurationFile>
+              </systemProperties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
 

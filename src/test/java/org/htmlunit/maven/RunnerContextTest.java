@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.plugin.logging.Log;
@@ -154,15 +155,22 @@ public class RunnerContextTest {
     assertThat(context.getTestRunnerScript().toString()
         .endsWith("org/htmlunit/maven/TestRunner.js"), is(true));
     assertThat(context.getBootstrapScripts().size(), is(2));
-    assertThat(context.getBootstrapScripts().get(0).toString()
-        .endsWith("org/htmlunit/maven/Bootstrap.js"), is(true));
+    assertThat(contains(context.getBootstrapScripts(),
+        "org/htmlunit/maven/Bootstrap.js"), is(true));
     assertThat(context.getSourceScripts().size(), is(2));
-    assertThat(context.getSourceScripts().get(0).toString()
-        .endsWith("Widget.js"), is(true));
+    assertThat(contains(context.getSourceScripts(), "Widget.js"), is(true));
     assertThat(context.getTestFiles().size(), is(3));
-    assertThat(context.getTestFiles().get(0).toString()
-        .endsWith("WidgetTest.js"), is(true));
+    assertThat(contains(context.getTestFiles(), "WidgetTest.js"), is(true));
     assertThat(context.getOutputDirectory(),
         is(new File(System.getProperty("java.io.tmpdir"))));
+  }
+
+  private boolean contains(final List<URL> list, final String value) {
+    for (URL url : list) {
+      if (url.toString().endsWith(value)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
