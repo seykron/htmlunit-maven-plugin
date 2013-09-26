@@ -41,6 +41,7 @@ public class AbstractRunnerTest {
 
     Properties clientProps = new Properties();
     clientProps.put("homePage", "http://foo.bar");
+    clientProps.put("javaScriptEnabled", String.valueOf(true));
     expect(context.getWebClientConfiguration()).andReturn(clientProps);
     expect(context.getTimeout()).andReturn(60);
     context.init();

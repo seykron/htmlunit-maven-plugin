@@ -109,6 +109,7 @@ public abstract class AbstractRunner implements WebDriverRunner {
     Validate.notNull(theContext, "The context cannot be null.");
 
     context = theContext;
+    configureRunner(context);
     context.init();
     driver = new RunnerDriver(context.getBrowserVersion());
     int timeout = getContext().getTimeout();
@@ -121,7 +122,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
       // -1 means INFINITE, no timeout.
       wait.withTimeout(timeout, TimeUnit.SECONDS);
     }
-    configureRunner(context);
   }
 
   /** {@inheritDoc}
@@ -188,7 +188,8 @@ public abstract class AbstractRunner implements WebDriverRunner {
   }
 
   /** Allows to modify web client just after creation. By default it applies
-   * all properties specified in the runner configuration.
+   * all properties specified in the runner configuration. Some properties will
+   * take no effect since they're used during construction.
    *
    * @param client Client to modify. Cannot be null.
    */
@@ -406,7 +407,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
           LOG.trace(message, origin);
         }
       });
-      theClient.getOptions().setJavaScriptEnabled(true);
       theClient.addWebWindowListener(new WebWindowListener() {
 
         /** {@inheritDoc}

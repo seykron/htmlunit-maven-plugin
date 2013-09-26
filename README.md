@@ -31,6 +31,58 @@ box to integrate HtmlUnit and unit/functional testing into other projects.
 * Runner implementations are notified after each test file is processed and
   they're able to perform assertions on the DOM.
 * Integrated debug mode via embedded HTTP server.
+* Configurable system properties
+
+## Usage
+The default test runner is ```org.htmlunit.maven.runner.JavaScriptTestRunner```,
+which loads a set of JavaScript files into the test template as ```script```
+tags.
+
+Runners take a template and make replacement of some default placeholders. These
+placeholders are ```$bootstrapScripts$```, ```$sourceScripts$``` and
+```$testFiles$```. They consist of valid ant patterns and can be specified in
+the runner configuration. These patterns are expanded to physical resources
+when the template is processed.
+
+Though these placeholders can be used anywhere in the template, they have a
+little of semantic. ```$bootstrapScripts$``` is intended to load environment
+libraries required by sources and tests. ```$sourceScripts$``` are the source
+files to be tested. Finally, ```$testFiles$``` are the set of tests to run.
+
+An important note: contrary to ```$bootstrapScripts$``` and
+```$sourceScripts$``` which are always completely expanded and written to the
+template as ```script``` tags, ```$testFiles$``` are expanded and each resource
+runs in a different context. Each expanded test will have a single HTML file
+written to the specified ```outputDirectory```, so they may be executed just
+opening them with a browser.
+
+That said, it can be configured as maven plugin. Default phase is "test".
+Default runner template is ```org/htmlunit/maven/DefaultTestRunner.html```. In
+this example it uses [Jasmine](http://pivotal.github.io/jasmine/) to run
+JavaScript tests.
+
+```
+<plugin>
+  <groupId>org.htmlunit</groupId>
+  <artifactId>htmlunit-maven-plugin</artifactId>
+  <version>1.0</version>
+  <configuration>
+    <runnerConfiguration>
+      <outputDirectory>${project.build.directory}/htmlunit-tests</outputDirectory>
+      <bootstrapScripts>
+        classpath:/META-INF/resources/webjars/jasmine/**/*.js;
+        classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js
+      </bootstrapScripts>
+      <sourceScripts>
+        file:${basedir}/src/main/resources/**/*.js;
+      </sourceScripts>
+      <testFiles>
+        file:${basedir}/src/test/resources/**/*Test.js
+      </testFiles>
+    </runnerConfiguration>
+  </configuration>
+</plugin>
+```
 
 ## Configuration
 There're three kind of configurations: plugin, web client and runner
@@ -63,9 +115,9 @@ Sample configuration (it's used in the plugin integration test):
     </testRunnerTemplate>
     <bootstrapScripts>
       classpath:/META-INF/resources/webjars/jasmine/**/*.js;
-      file:${basedir}/src/test/resources/**/report/*_reporter.js;
-      file:${basedir}/src/test/resources/**/Bootstrap.js;
+      classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js;
       classpath:/META-INF/resources/webjars/jquery/**/*.min.js;
+      file:${basedir}/src/test/resources/**/Bootstrap.js
     </bootstrapScripts>
     <sourceScripts>
       file:${basedir}/src/main/resources/**/*.js;
@@ -73,93 +125,94 @@ Sample configuration (it's used in the plugin integration test):
     <testFiles>
       file:${basedir}/src/test/resources/**/*Test.js
     </testFiles>
+    <systemProperties>
+      <customProperty>foo</customProperty>
+    </systemProperties>
   </runnerConfiguration>
 </configuration>
 ```
 
-## Lifecycle
-The plugin lifecycle consist of two phases:
-
-* Initialization
-* Execution
-
-### Initialization
-During the initialization phase, it applies default configuration to
-[WebClient](http://is.gd/1DSPrM) and runners. This phase also allows
-implementations to modify these entities via
-```AbstractRunner#configureRunner(RunnerContext context)``` and
-```AbstractRunner#configureWebClient(WebClient client)```.
-
-### Execution
-This phase executes tests once at a time and let implementations to load
-tests files via
-```AbstractRunner#loadTest(StringTemplate runnerTemplate, URL test)```. It uses
-a simple Antlr template to perform placeholders replacement. Runners must set
-the ```testFiles``` placeholder to the test content, usually ```<script>``` tags
-or processed mark-up.
-
-After placeholders replacement it writes the runner file to the configured
-```outputDirectory``` and loads it into the current WebClient.
-
-The execution phase of each test ends when the runner invokes the standard
-```window.close()``` method or because a timeout. When it ends up,
-```AbstractRunner#testFinished(URL test, HtmlPage page)``` is invoked to let
-implementations make assertions on page's DOM.
-
-For further information look at ```HtmlTestRunnerTest``` and
-```JavaScriptTestRunnerTest``` classes.
-
-## Extension: how to create new runners
-This plugin can be extended creating new runners. Runners are classes
-responsible of loading test content into the runner template. It must extend
-```AbstractRunner``` as it's shown in the following example:
-
-```
-package com.my.project;
-
-/** Runner to load tests from plain HTML files.
- */
-public class CustomTestRunner extends AbstractRunner {
-
-  /** Loads test content from somewhere.
-   * {@inheritDoc}
-   */
-  protected void loadTest(final StringTemplate runnerTemplate,
-      final URL test) {
-    String testContent = loadTestContentFromSomewhere(test);
-    runnerTemplate.setAttribute("testFiles", testContent);
-  }
-}
-```
-Once created, the runner can be specified in the plugin POM's configuration:
+## Logging
+This plugin uses Logback over SLF4J for logging. Logback configuration file is
+not embedded into the plugin, it must be configured as a system property using
+logback's property.
 
 ```
 <configuration>
-  <runnerClassName>com.my.project.CustomTestRunner</runnerClassName>
+  <systemProperties>
+    <logback.configurationFile>${basedir}/src/test/resources/logback.xml</logback.configurationFile>
+  </systemProperties>
+</configuration>
+```
+
+If logback is already configured in the running environment, configuration will
+be inherited from context.
+
+## Webjars
+To take advantage of the flexible resource system I strongly recommend to import
+JavaScript libraries as maven dependencies, so it will be easy to upgrade
+libraries. Resources can be loaded using classpath patterns.
+[Webjars](http://www.webjars.org/) project hosts several versions of most common
+JavaScript libraries. If you don't find your required library it's possible to
+make a new request to Webjars in order to upload a new lib.
+
+The plugin integration test consist of a simple
+[Jasmine](http://pivotal.github.io/jasmine/) test, and all required libraries
+are loaded from Webjars. You already have noticed this piece of POM:
+
+```
+...
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>jasmine</artifactId>
+  <version>1.3.1</version>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>jasmine-jquery</artifactId>
+  <version>1.4.2</version>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>jquery</artifactId>
+  <version>1.6.2</version>
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>org.webjars</groupId>
+  <artifactId>jasmine-reporters</artifactId>
+  <version>0.2.1</version>
+  <scope>test</scope>
+</dependency>
+...
+```
+
+These dependencies loads into the test classpath Jasmine, jQuery and some
+utilities for jasmine. Once added as dependencies, they can be loaded into
+this plugin via classpath.
+
+```
+...
+<configuration>
+  <runnerConfiguration>
+    ...
+    <bootstrapScripts>
+      classpath:/META-INF/resources/webjars/jasmine/**/*.js;
+      classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js;
+      classpath:/META-INF/resources/webjars/jquery/**/*.min.js;
+    </bootstrapScripts>
+    ...
+  </runnerConfiguration>
 </configuration>
 ```
 
 ### Development
-New features are welcome but must follow these constraints:
+If you'd like to contribute or to embed it into your platform, please take a
+look at the [Development](Development.md) page.
 
-* Keep it simple: this project is micro-infrastructure, it's not intended to
-solve more problems than it solves right now. I will create another repository
-to upload custom runners to integrate specific frameworks.
-
-* Agree before coding: send a message, or an email, or whatever you feel
-comfortable but please ask before coding. Some features already exist or they
-can be solved in another ways. This documentation is prelimitar and it lacks a
-lot of important internals.
-
-* Follow code conventions: if you look at the code you will notice it looks
-similar everywhere. Code conventions are not related to beauty, they're related
-to consistence. I adopted the standard Sun conventions with a little change:
-two spaces instead of four for indentation.
-
-* Be humble: I like to review the code I commit. I make my own self-review
-before committing code to the remote repository, so I'll make the same with
-push requests. I understand sometimes is very difficult to agree with code
-changes but discussion is necessary to build a common knowledge.
+Feature requests and bug fixes are welcome.
 
 ### License
     Copyright 2013 seykron (https://github.com/seykron/htmlunit-maven-plugin)

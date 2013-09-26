@@ -43,12 +43,9 @@ public class JavaScriptTestRunnerTest {
     runnerConfig.put("PROP_BAR", "BAR");
 
     context.setTimeout(10);
-    context.getWebClientConfiguration().setProperty("javaScriptEnabled",
-        String.valueOf(true));
     context.setRunnerConfiguration(runnerConfig);
     context.getWebClientConfiguration()
       .setProperty("throwExceptionOnScriptError", String.valueOf(true));
-    runner = new JavaScriptTestRunner();
   }
 
   @Test
