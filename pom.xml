@@ -7,7 +7,7 @@
     <version>6</version>
   </parent>
 
-  <groupId>org.htmlunit</groupId>
+  <groupId>com.github.seykron</groupId>
   <artifactId>htmlunit-maven-plugin</artifactId>
   <version>1.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
@@ -307,7 +307,7 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.htmlunit</groupId>
+            <groupId>com.github.seykron</groupId>
             <artifactId>htmlunit-maven-plugin</artifactId>
             <version>${version}</version>
             <executions>
