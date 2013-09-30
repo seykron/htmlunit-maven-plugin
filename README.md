@@ -1,3 +1,5 @@
+![CI](https://api.travis-ci.org/seykron/htmlunit-maven-plugin.png "Travis CI - Continuous Integration")
+
 htmlunit-maven-plugin
 =====================
 
