@@ -317,8 +317,11 @@ public abstract class AbstractRunner implements WebDriverRunner {
           StringBuilder debugCode = new StringBuilder();
 
           for (Entry<Object, Object> entry : entries) {
+            String scapedValue = entry.getValue().toString()
+                .replaceAll("\n", "");
+
             debugCode.append("window[\"" + entry.getKey() + "\"] = \""
-                + entry.getValue() + "\";\n");
+                + scapedValue + "\";\n");
           }
 
           return new ByteArrayInputStream(debugCode.toString().getBytes());

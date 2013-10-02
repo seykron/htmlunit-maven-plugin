@@ -14,6 +14,11 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.htmlunit.maven.runner.JavaScriptTestRunner;
 import org.openqa.selenium.WebDriver;
@@ -24,73 +29,61 @@ import com.gargoylesoftware.htmlunit.WebClient;
 
 /** Base class to execute test runner mojos. By default it configures and
  * executes the runner.
- *
- * @component
- * @goal run
- * @phase test
- * @requiresDependencyResolution test
  */
+@Mojo(name = "run", defaultPhase = LifecyclePhase.TEST,
+  requiresDependencyResolution = ResolutionScope.TEST)
 public class TestMojo extends AbstractMojo {
 
-  /**
-   * @component
-   */
+  /** Maven's artifact resolver. */
+  @Component
   private ArtifactResolver artifactResolver;
 
-  /**
-   * Provides some metadata operations, like querying the remote repository for
+  /** Provides some metadata operations, like querying the remote repository for
    * a list of versions available for an artifact.
-   *
-   * @component
    */
+  @Component
   private ArtifactMetadataSource metadataSource;
 
-  /**
-   * Specifies the repository used for artifact handling.
-   *
-   * @parameter expression="${localRepository}"
+  /** Specifies the repository used for artifact handling.
    */
+  @Parameter(defaultValue = "${localRepository}")
   private ArtifactRepository localRepository;
 
   /** The Maven project object, used to generate a classloader to access the
    * classpath resources from the project.
    *
    * Injected by maven. This is never null.
-   *
-   * @parameter expression="${project}" @readonly
    */
+  @Component
   private MavenProject project;
 
   /** Determines the web driver runner class. By default {@link HtmlUnitDriver}
    * is used.
-   *
-   * @parameter
    */
+  @Parameter
   private String runnerClassName;
 
   /** Properties to configure the runner.
-   * @parameter
    */
+  @Parameter(required = true)
   private Map<String, String> runnerConfiguration;
 
 
   /** Properties to configure the {@link WebClient}.
-   * @parameter
    */
+  @Parameter
   private Map<String, String> webClientConfiguration;
 
   /** Indicates if dependencies will be added to the current thread class
    * loader.
-   *
-   * @parameter
    */
+  @Parameter
   private boolean dependenciesClassLoader;
 
   /** Indicates if test dependencies will be added to the current thread class
    * loader.
-   *
-   * @parameter
    */
+  @Parameter
   private boolean testDependenciesClassLoader;
 
   /**
@@ -101,14 +94,13 @@ public class TestMojo extends AbstractMojo {
    *
    * Some valid examples: FIREFOX_3_6, INTERNET_EXPLORER_6, INTERNET_EXPLORER_7,
    * INTERNET_EXPLORER_8
-   *
-   * @parameter default-value="FIREFOX_17"
    */
+  @Parameter(defaultValue = "FIREFOX_17")
   private String browserVersion;
 
   /** Web client page load timeout, in seconds.
-   * @parameter default-value="30"
    */
+  @Parameter(defaultValue = "30")
   private int timeout;
 
   /** Indicates whether to skip tests or not. Runners won't be processed
@@ -116,20 +108,19 @@ public class TestMojo extends AbstractMojo {
    *
    * @parameter expression="${skipTests}"
    */
+  @Parameter(property = "skipTests")
   private boolean skipTests;
 
   /** Enables test debugging. It starts a server and allows to connect from
    * a browser.
-   *
-   * @parameter expression="${maven.surefire.debug}"
    */
+  @Parameter(property = "maven.surefire.debug")
   private boolean debugMode;
 
   /** List of properties to register in {@link System#getProperties()}.
-   *
-   * @parameter
    */
   @SuppressWarnings("rawtypes")
+  @Parameter
   private Map systemProperties = new HashMap();
 
   /** Executes jasmine tests.
