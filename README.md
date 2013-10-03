@@ -34,13 +34,14 @@ box to integrate HtmlUnit and unit/functional testing into other projects.
 * Maven 2 or 3
 
 ## Quick start
-1. Add the plugin to your POM's ```build``` section:
+1. Add the plugin to your POM's ```build``` section. Current version available
+in maven central repository is [**1.1**](CHANGELOG.md).
 
 ```
 <plugin>
   <groupId>org.htmlunit</groupId>
   <artifactId>htmlunit-maven-plugin</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <configuration>
     <runnerConfiguration>
       <outputDirectory>${project.build.directory}/htmlunit-tests</outputDirectory>
