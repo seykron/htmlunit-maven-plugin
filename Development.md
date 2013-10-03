@@ -1,5 +1,9 @@
 Development
 ===========
+This project is designed under the single responsibility principle, so though
+it's opened for extension it's also opened for modifications. To minimize
+breaking changes in the future, it has three implementations over the core
+infrastructure.
 
 ## Lifecycle
 The plugin lifecycle consist of two phases:

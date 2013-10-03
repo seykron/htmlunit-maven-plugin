@@ -6,7 +6,7 @@ htmlunit-maven-plugin
 Maven plugin to load test files into HtmlUnit. This plugin is a generalization
 of several projects which use HtmlUnit to run JavaScript tests over different
 frameworks. The main goal is to provide the minimal infrastructure required to
-dynamically build HTML files often known as "runners", which are responsible of
+dynamically build HTML files often known as "runners", which are responsible for
 loading bootstrap scripts, sources and test files.
 
 The main motivation to create this project refer to the fact that existing
@@ -15,11 +15,6 @@ projects. Some common limitations are they don't let to load resources from
 classpath, they don't generate a single runner file for each test (so it's
 impossible to isolate tests environment), they have a very complex codebase and
 often if they provide a debug mode, it isn't very friendly.
-
-This project is designed under the single responsibility principle, so though
-it's opened for extension it's also opened for modifications. To minimize
-breaking changes in the future, it has three implementations over the core
-infrastructure. For further information, look at development information below.
 
 Finally, though it's distributed as a maven plugin, it can be used out of the
 box to integrate HtmlUnit and unit/functional testing into other projects.
@@ -33,35 +28,13 @@ box to integrate HtmlUnit and unit/functional testing into other projects.
 * Runner implementations are notified after each test file is processed and
   they're able to perform assertions on the DOM.
 * Integrated debug mode via embedded HTTP server.
-* Configurable system properties
+* Configurable system properties.
 
-## Usage
-The default test runner is ```org.htmlunit.maven.runner.JavaScriptTestRunner```,
-which loads a set of JavaScript files into the test template as ```script```
-tags.
+## Requirements
+* Maven 2 or 3
 
-Runners take a template and make replacement of some default placeholders. These
-placeholders are ```$bootstrapScripts$```, ```$sourceScripts$``` and
-```$testFiles$```. They consist of valid ant patterns and can be specified in
-the runner configuration. These patterns are expanded to physical resources
-when the template is processed.
-
-Though these placeholders can be used anywhere in the template, they have a
-little of semantic. ```$bootstrapScripts$``` is intended to load environment
-libraries required by sources and tests. ```$sourceScripts$``` are the source
-files to be tested. Finally, ```$testFiles$``` are the set of tests to run.
-
-An important note: contrary to ```$bootstrapScripts$``` and
-```$sourceScripts$``` which are always completely expanded and written to the
-template as ```script``` tags, ```$testFiles$``` are expanded and each resource
-runs in a different context. Each expanded test will have a single HTML file
-written to the specified ```outputDirectory```, so they may be executed just
-opening them with a browser.
-
-That said, it can be configured as maven plugin. Default phase is "test".
-Default runner template is ```org/htmlunit/maven/DefaultTestRunner.html```. In
-this example it uses [Jasmine](http://pivotal.github.io/jasmine/) to run
-JavaScript tests.
+## Quick start
+1. Add the plugin to your POM's ```build``` section:
 
 ```
 <plugin>
@@ -71,10 +44,6 @@ JavaScript tests.
   <configuration>
     <runnerConfiguration>
       <outputDirectory>${project.build.directory}/htmlunit-tests</outputDirectory>
-      <bootstrapScripts>
-        classpath:/META-INF/resources/webjars/jasmine/**/*.js;
-        classpath:/META-INF/resources/webjars/jasmine-reporters/**/*_reporter.js
-      </bootstrapScripts>
       <sourceScripts>
         file:${basedir}/src/main/resources/**/*.js;
       </sourceScripts>
@@ -85,6 +54,66 @@ JavaScript tests.
   </configuration>
 </plugin>
 ```
+
+2. Run tests
+
+```
+mvn htmlunit:run
+```
+
+## Debugging tests
+This plugin has an embedded web server to run tests from a real web browser. It
+can be used setting the surefire's debug flag to true:
+
+```
+mvn htmlunit:run -Dmaven.surefire.debug=true
+```
+
+By default it starts on port 8000, but it can be configured setting the runner's
+```debugPort``` attribute. The following endpoint will serve a single test:
+
+```
+http://localhost:8000/test/org/htmlunit/JasmineTest.js
+```
+
+The ```/test/``` endpoint follows the same convention as ```-Dtest``` parameter.
+It is possible to specify either the fully-qualified name or the single name.
+
+
+## How it works
+This plugin generates an HTML test runner from a *template* for each matching
+test file. Test files are loaded into the template using *runners*.
+
+Runners are components responsible for loading tests into the template. There
+exist two built-in runners: ```org.htmlunit.maven.runner.JavaScriptTestRunner```
+and ```org.htmlunit.maven.runner.HtmlTestRunner```. Default runner is
+```org.htmlunit.maven.runner.JavaScriptTestRunner```, and it loads test files
+into the template as ```script``` tags.
+
+The template supports several built-in placeholders which will be replaced by
+configuration entries when it is processed. Supported placeholders are
+```$bootstrapScripts$```, ```$sourceScripts$```, ```$testFiles$``` and
+```$testRunnerScript$```. They consist of valid ant patterns and can be
+specified in the runner configuration. These patterns are expanded to physical
+resources when the template is processed.
+
+Though these placeholders can be used anywhere in the template, they have a
+default semantic. ```$bootstrapScripts$``` is intended to load environment
+libraries required by sources and tests. ```$sourceScripts$``` are the source
+files to be tested; ```$testFiles$``` are the set of tests to run and
+```$testRunnerScript$``` is a single JavaScript file to prepare the environment
+before running tests.
+
+An important note: contrary to ```$bootstrapScripts$``` and
+```$sourceScripts$``` which are always completely expanded and written to the
+template as ```script``` tags, ```$testFiles$``` are expanded and each resource
+runs in a different context. Each expanded test will have a single HTML file
+written to the specified ```outputDirectory```, so they may be executed just
+opening them with a browser.
+
+That said, it can be configured as maven plugin. Default phase is "test".
+Default runner template is ```org/htmlunit/maven/DefaultTestRunner.html```.
+
 
 ## Configuration
 There're three kind of configurations: plugin, web client and runner
@@ -100,7 +129,8 @@ throwExceptionOnScriptError, throwExceptionOnFailingStatusCode.
 Runner configuration is runner-specific configuration, though there're some
 common attributes applied to all runners.
 
-Sample configuration (it's used in the plugin integration test):
+The following example uses [Jasmine](http://pivotal.github.io/jasmine/) to run
+JavaScript tests (it's used in the plugin integration test):
 
 ```
 <configuration>
@@ -191,9 +221,9 @@ are loaded from Webjars. You already have noticed this piece of POM:
 ...
 ```
 
-These dependencies loads into the test classpath Jasmine, jQuery and some
-utilities for jasmine. Once added as dependencies, they can be loaded into
-this plugin via classpath.
+These dependencies load Jasmine, jQuery and some utilities for jasmine into the
+test classpath. Once added as dependencies, they can be loaded into the context
+via classpath.
 
 ```
 ...
@@ -210,13 +240,13 @@ this plugin via classpath.
 </configuration>
 ```
 
-### Development
+## Development
 If you'd like to contribute or to embed it into your platform, please take a
 look at the [Development](Development.md) page.
 
 Feature requests and bug fixes are welcome.
 
-### License
+## License
     Copyright 2013 seykron (https://github.com/seykron/htmlunit-maven-plugin)
 
     Licensed under the Apache License, Version 2.0 (the "License");

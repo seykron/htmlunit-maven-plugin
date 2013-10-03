@@ -11,9 +11,6 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import sun.net.www.protocol.classpath.Handler;
-
-
 /** Tests the {@link Handler} class.
  */
 public class HandlerTest {

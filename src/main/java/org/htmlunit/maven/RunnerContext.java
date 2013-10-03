@@ -32,6 +32,9 @@ public class RunnerContext {
   public static final String DEFAULT_TEMPLATE =
       "classpath:/org/htmlunit/maven/DefaultTestRunner.html";
 
+  /** Default debug server port. */
+  private static final int DEFAULT_DEBUG_PORT = 8000;
+
   /** Htmlunit browser version; it's never null. */
   private BrowserVersion browserVersion = BrowserVersion.FIREFOX_17;
 
@@ -51,7 +54,7 @@ public class RunnerContext {
   private boolean debugMode;
 
   /** Port to start debug server. Default is 8000. */
-  private Integer debugPort = 8000;
+  private Integer debugPort = DEFAULT_DEBUG_PORT;
 
   /** Path to the test runner template. */
   private URL testRunnerTemplate;
@@ -73,7 +76,7 @@ public class RunnerContext {
   private List<URL> testFiles = new ArrayList<URL>();
 
   /** Test runner and test cases output directory; it's never null
-   * after initialize();
+   * after initialize().
    */
   private File outputDirectory;
 
@@ -201,8 +204,8 @@ public class RunnerContext {
    *    <code>false</code> otherwise.
    */
   public boolean isJavaScriptEnabled() {
-    return webClientConfiguration.containsKey("javaScriptEnabled") &&
-        Boolean.valueOf(webClientConfiguration
+    return webClientConfiguration.containsKey("javaScriptEnabled")
+        && Boolean.valueOf(webClientConfiguration
             .getProperty("javaScriptEnabled"));
   }
 
@@ -269,7 +272,8 @@ public class RunnerContext {
   private void readRunnerConfig(final Properties config) {
     try {
       // Reads debug information.
-      debugPort = readProperty(config, Integer.class, "debugPort", 8000);
+      debugPort = readProperty(config, Integer.class, "debugPort",
+          DEFAULT_DEBUG_PORT);
 
       // Reads runner template.
       String template = readProperty(config, String.class, "testRunnerTemplate",
@@ -317,6 +321,7 @@ public class RunnerContext {
    * @param key Property key. Cannot be null or empty.
    * @param defaultValue Default value if the property doesn't exist. Can be
    *    null.
+   * @param <T> Type of the required property.
    * @return Returns the required property, or the default value if it doesn't
    *    exist.
    */

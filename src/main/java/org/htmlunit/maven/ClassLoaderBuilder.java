@@ -49,7 +49,7 @@ public class ClassLoaderBuilder {
   private ClassLoader parent;
 
   /** Creates a new maven class loader builder.
-   * 
+   *
    * @param theArtifactResolver Resolver to download dependencies. Cannot be
    *    null.
    * @param theMetadataSource Provides artifacts metadata. Cannot be null.
@@ -91,7 +91,8 @@ public class ClassLoaderBuilder {
 
   /** Specifies if project test dependencies will be added to the class loader.
    *
-   * @param mustIncludeDependencies True to add dependencies, false otherwise.
+   * @param mustIncludeTestDependencies True to add dependencies, false
+   *    otherwise.
    * @return Returns this builder to continue with the class loader
    *    configuration.
    */
@@ -121,7 +122,7 @@ public class ClassLoaderBuilder {
 
     if (includeDependencies || includeTestDependencies) {
       List<URL> artifactsUrls = new ArrayList<URL>();
-  
+
       try {
         Set<Artifact> artifacts = new HashSet<Artifact>();
 
@@ -142,7 +143,7 @@ public class ClassLoaderBuilder {
       } catch (Exception ex) {
         throw new RuntimeException("Cannot resolve the artifact.", ex);
       }
-  
+
       classLoader = new URLClassLoader(artifactsUrls.toArray(new URL[] {}),
           parent);
     }

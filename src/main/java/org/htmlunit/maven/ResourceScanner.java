@@ -15,7 +15,7 @@ public abstract class ResourceScanner {
   /** Convenience factory method to create a suitable resource scanner for the
    * specified expression. The resource must exist.
    *
-   * @param resourcePattern Resource expression to scan. Cannot be null or
+   * @param expression Resource expression to scan. Cannot be null or
    *    empty.
    * @return Returns a valid scanner. Never returns null.
    */

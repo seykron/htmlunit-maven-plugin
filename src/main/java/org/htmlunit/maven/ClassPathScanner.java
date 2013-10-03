@@ -19,12 +19,18 @@ import org.codehaus.plexus.util.SelectorUtils;
  */
 public class ClassPathScanner extends ResourceScanner {
 
+  /** Creates a new classpath scanner.
+   *
+   * @param theExpression Expression to scan. Cannot be null.
+   */
   public ClassPathScanner(final AntExpression theExpression) {
     super(theExpression);
   }
 
   /** Find all resources in jar files that match the given location pattern
    * via the Ant-style matcher.
+   * @return Returns the list of classpath URLs matching the current ant
+   *    expression, never returns null.
    */
   @Override
   public List<URL> list() {
@@ -54,9 +60,9 @@ public class ClassPathScanner extends ResourceScanner {
    * @return Returns a list of matching resources. Never returns null.
    */
   private List<URL> findMatches(final URL url) {
-    JarFile jarFile;
-    String rootEntryPath;
     try {
+      JarFile jarFile;
+      String rootEntryPath = "";
       URLConnection con = url.openConnection();
 
       if (!JarURLConnection.class.isInstance(con)) {
@@ -69,7 +75,10 @@ public class ClassPathScanner extends ResourceScanner {
       jarCon.setUseCaches(false);
       jarFile = jarCon.getJarFile();
       JarEntry jarEntry = jarCon.getJarEntry();
-      rootEntryPath = (jarEntry != null ? jarEntry.getName() : "");
+
+      if (jarEntry != null) {
+        rootEntryPath = jarEntry.getName();
+      }
 
       if (!"".equals(rootEntryPath) && !rootEntryPath.endsWith("/")) {
         // Root entry path must end with slash to allow for proper matching.

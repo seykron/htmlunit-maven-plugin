@@ -257,6 +257,11 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.9</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
         <version>3.2</version>
         <configuration>
@@ -317,9 +322,58 @@
           <useReleaseProfile>true</useReleaseProfile>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.10</version>
+        <configuration>
+          <configLocation>${basedir}/src/test/resources/checkstyle-strict.xml</configLocation>
+          <suppressionsLocation>
+            ${basedir}/src/test/resources/checkstyle-suppressions.xml
+          </suppressionsLocation>
+          <suppressionsFileExpression>
+            checkstyle.suppressions.file
+          </suppressionsFileExpression>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle-code-verification</id>
+            <phase>package</phase>
+            <goals>
+              <goal>checkstyle</goal>
+            </goals>
+            <configuration>
+              <failsOnError>true</failsOnError>
+              <consoleOutput>true</consoleOutput>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+  <reporting>
+    <plugins>
 
+      <!-- Checkstyle report plugin configuration. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.10</version>
+        <configuration>
+          <configLocation>
+            ${basedir}/src/test/resources/checkstyle-strict.xml
+          </configLocation>
+          <suppressionsLocation>
+            ${basedir}/src/test/resources/checkstyle-suppressions.xml
+          </suppressionsLocation>
+          <enableRulesSummary>false</enableRulesSummary>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </reporting>
   <profiles>
     <profile>
       <id>integration-tests</id>

@@ -51,7 +51,7 @@ public class FileSystemScanner extends ResourceScanner {
   public List<URL> list() {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(baseDir);
-    scanner.setIncludes(new String[] { getExpression().getPattern() });
+    scanner.setIncludes(new String[] {getExpression().getPattern()});
     scanner.scan();
 
     try {

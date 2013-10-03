@@ -82,6 +82,7 @@ public abstract class TestDebugServer extends NanoHTTPD {
    *    or empty.
    * @param debugPort Port where debug server is listening. Must be greater
    *    than 0.
+   * @param original Original resource URL to transform. Cannot be null.
    * @return Returns a list of script urls. Never returns null.
    */
   public static final URL getStaticContentUrl(final String debugHost,
@@ -92,8 +93,8 @@ public abstract class TestDebugServer extends NanoHTTPD {
 
     try {
       return new URL("http://" + debugHost + ":" + debugPort
-          + STATIC_CONTENT_ENDPOINT + "?" + STATIC_CONTENT_PARAM + "=" +
-          original.toString());
+          + STATIC_CONTENT_ENDPOINT + "?" + STATIC_CONTENT_PARAM + "="
+          + original.toString());
     } catch (MalformedURLException cause) {
       throw new RuntimeException("Cannot generate debug url", cause);
     }
@@ -112,8 +113,8 @@ public abstract class TestDebugServer extends NanoHTTPD {
       final String debugHost, final int debugPort) {
     try {
       return Arrays.asList(new URL("http://" + debugHost + ":" + debugPort
-          + STATIC_CONTENT_ENDPOINT + "?" + STATIC_CONTENT_PARAM +
-          "=" + DEBUG_SUPPORT));
+          + STATIC_CONTENT_ENDPOINT + "?" + STATIC_CONTENT_PARAM
+          + "=" + DEBUG_SUPPORT));
     } catch (MalformedURLException cause) {
       throw new RuntimeException("Cannot generate debug file url.", cause);
     }
@@ -182,7 +183,7 @@ public abstract class TestDebugServer extends NanoHTTPD {
         .substringBefore(uri.substring(1), "/"));
     try {
       java.lang.reflect.Method handler = getClass().getMethod("handle" + action,
-          new Class[] { String.class, Map.class });
+          new Class[] {String.class, Map.class});
       handler.setAccessible(true);
       return (Response) handler.invoke(this, uri, params);
     } catch (Exception cause) {

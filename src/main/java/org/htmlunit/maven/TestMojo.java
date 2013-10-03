@@ -21,11 +21,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.htmlunit.maven.runner.JavaScriptTestRunner;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.WebClient;
 
 /** Base class to execute test runner mojos. By default it configures and
  * executes the runner.
@@ -124,6 +121,9 @@ public class TestMojo extends AbstractMojo {
   private Map systemProperties = new HashMap();
 
   /** Executes jasmine tests.
+   *
+   * @throws MojoExecutionException On plugin internal error.
+   * @throws MojoFailureException On plugin failure.
    */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -166,8 +166,8 @@ public class TestMojo extends AbstractMojo {
    * runner.
    *
    * @param runner Runner to execute. It's never null.
-   * @throws MojoExecutionException
-   * @throws MojoFailureException
+   * @throws MojoExecutionException On plugin internal error.
+   * @throws MojoFailureException On plugin failure.
    */
   protected void doExecute(final WebDriverRunner runner)
       throws MojoExecutionException, MojoFailureException {
@@ -210,7 +210,8 @@ public class TestMojo extends AbstractMojo {
   private ClassLoader createDependenciesClassLoader() {
     ClassLoaderBuilder builder = new ClassLoaderBuilder(artifactResolver,
         metadataSource, localRepository, project);
-    ClassLoader classLoader = builder.includeDependencies(dependenciesClassLoader)
+    ClassLoader classLoader = builder
+        .includeDependencies(dependenciesClassLoader)
         .includeTestDependencies(testDependenciesClassLoader)
         .setParent(Thread.currentThread().getContextClassLoader())
         .create();

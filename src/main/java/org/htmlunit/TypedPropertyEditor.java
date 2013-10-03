@@ -21,7 +21,7 @@ import org.apache.commons.lang.Validate;
 public class TypedPropertyEditor extends PropertyEditorSupport {
 
   /** Property editors to edit default types. */
-  private static final List<TypeEditor> types = new ArrayList<TypeEditor>();
+  private final List<TypeEditor> types = new ArrayList<TypeEditor>();
 
   /** Indicates whether a type editor can edit the current value. */
   private boolean editable;
@@ -90,8 +90,8 @@ public class TypedPropertyEditor extends PropertyEditorSupport {
     public Object getValue() {
       Object value = super.getValue();
       try {
-        return type.getMethod("valueOf", new Class[] { String.class })
-            .invoke(null, new Object[] { value.toString() });
+        return type.getMethod("valueOf", new Class[] {String.class})
+            .invoke(null, new Object[] {value.toString()});
       } catch (Exception cause) {
         throw new IllegalArgumentException("Cannot convert value.", cause);
       }

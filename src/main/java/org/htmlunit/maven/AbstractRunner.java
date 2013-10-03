@@ -80,6 +80,9 @@ public abstract class AbstractRunner implements WebDriverRunner {
   /** Test runner file name. */
   private static final String TEST_RUNNER_SUFFIX = "Runner.html";
 
+  /** Default wait polling interval, in milliseconds. */
+  private static final long POLLING_INTERVAL = 1000;
+
   /** Runner configuration; it's valid only after initialize(). */
   private RunnerContext context;
 
@@ -117,7 +120,7 @@ public abstract class AbstractRunner implements WebDriverRunner {
         .isThrowExceptionOnScriptError();
     wait = new WebClientWait(driver.getWebClient());
     wait.setThrowJavaScriptException(throwException)
-      .pollingEvery(1000, TimeUnit.MILLISECONDS);
+      .pollingEvery(POLLING_INTERVAL, TimeUnit.MILLISECONDS);
     if (timeout > -1) {
       // -1 means INFINITE, no timeout.
       wait.withTimeout(timeout, TimeUnit.SECONDS);
@@ -182,9 +185,9 @@ public abstract class AbstractRunner implements WebDriverRunner {
   }
 
   /** Configures the runner. It's invoked during the runner initialization.
-   * @param context Context to configure the runner. Cannot be null.
+   * @param theContext Context to configure the runner. Cannot be null.
    */
-  protected void configureRunner(final RunnerContext context) {
+  protected void configureRunner(final RunnerContext theContext) {
   }
 
   /** Allows to modify web client just after creation. By default it applies
@@ -262,9 +265,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
   }
 
   /** Runs tests using the web driver.
-   *
-   * @param runnerFile Runner file to load into the web driver. Cannot be null.
-   * @param testFile Test file being executed. Cannot be null.
    */
   private void runDriver() {
     for (URL testFile : getContext().getTestFiles()) {
@@ -286,9 +286,6 @@ public abstract class AbstractRunner implements WebDriverRunner {
   }
 
   /** Runs tests using the a web server to allow debugging from browsers.
-   *
-   * @param runnerFile Runner file to load into the web driver. Cannot be null.
-   * @param testFile Test file being executed. Cannot be null.
    */
   private void runServer() {
     try {
@@ -376,6 +373,7 @@ public abstract class AbstractRunner implements WebDriverRunner {
      * signal of test completed, so it's necessary to check the DOM after
      * tests. We override the new selenium behaviour to make DOM work
      * with closed windows.
+     * @return Returns the DOM page of the current window.
      */
     @Override
     protected Page lastPage() {
@@ -395,7 +393,7 @@ public abstract class AbstractRunner implements WebDriverRunner {
           TypedPropertyEditor editor = new TypedPropertyEditor();
           editor.setValue(configuration.get(property));
           Statement stmt = new Statement(theClient.getOptions(), methodName,
-              new Object[] { editor.getValue() });
+              new Object[] {editor.getValue()});
           stmt.execute();
         } catch (Exception cause) {
           throw new IllegalArgumentException("Property " + property
@@ -509,9 +507,9 @@ public abstract class AbstractRunner implements WebDriverRunner {
 
     /** Creates a new event definition.
      *
-     * @param eventType Event to listen (like "click").
-     * @param handler Event listener. Cannot be null.
-     * @param useCapture If true, uses event capture phase.
+     * @param theEventType Event to listen (like "click").
+     * @param theHandler Event listener. Cannot be null.
+     * @param isUseCapture If true, uses event capture phase.
      */
     public EventDefinition(final String theEventType,
         final EventHandler theHandler, final boolean isUseCapture) {
