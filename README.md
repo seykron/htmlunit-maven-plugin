@@ -130,7 +130,7 @@ throwExceptionOnScriptError, throwExceptionOnFailingStatusCode.
 Runner configuration is runner-specific configuration, though there're some
 common attributes applied to all runners.
 
-The following example uses [Jasmine](http://pivotal.github.io/jasmine/) to run
+The following example uses [Jasmine](https://jasmine.github.io/) to run
 JavaScript tests (it's used in the plugin integration test):
 
 ```
@@ -190,7 +190,7 @@ JavaScript libraries. If you don't find your required library it's possible to
 make a new request to Webjars in order to upload a new lib.
 
 The plugin integration test consist of a simple
-[Jasmine](http://pivotal.github.io/jasmine/) test, and all required libraries
+[Jasmine](https://jasmine.github.io/) test, and all required libraries
 are loaded from Webjars. You already have noticed this piece of POM:
 
 ```
